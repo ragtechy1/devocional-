@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Jornada Diária</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #1a1a1a;
+            --text-light: #666;
+            --accent: #6d5b4b;
+            --accent-soft: #f2ede9;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #e0e0e0;
+            --text-light: #aaa;
+            --accent: #d4bc9e;
+            --accent-soft: #2d2a27;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Header & Controls */
+        .controls {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--accent-soft);
+            color: var(--text);
+            padding: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* Card Principal */
+        .card {
+            background: var(--card);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .date-container {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            line-height: 1.2;
+            margin-bottom: 25px;
+        }
+
+        .bible-box {
+            background: var(--accent-soft);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .verse-text {
+            font-size: 1.1rem;
+            font-style: italic;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .reference {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
+
+        .reflection-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+
+        /* Botões */
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 15px;
+            border-radius: 15px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: var(--accent-soft); color: var(--text); }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        .completed-badge {
+            display: none;
+            background: #4caf50;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <div class="controls">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Mudar tema">🌓</button>
+    </div>
+
+    <main class="card">
+        <div class="date-container">
+            <span id="dateText">16 de Fevereiro</span>
+            <span id="statusBadge" class="completed-badge">LIDO HOJE</span>
+        </div>
+
+        <h1 id="devTitle">Título do Devocional</h1>
+
+        <div class="bible-box">
+            <p class="verse-text" id="devVerse">"O Senhor é meu pastor e nada me faltará."</p>
+            <span class="reference" id="devRef">Salmos 23:1</span>
+        </div>
+
+        <div class="reflection-content" id="devText">
+            Carregando sua mensagem de paz...
+        </div>
+
+        <div class="actions">
+    <button class="btn btn-secondary" onclick="share()">Compartilhar</button>
+    <button class="btn btn-primary" id="btnStatus" onclick="toggleReadStatus()">Concluir Leitura</button>
+</div>
+    </main>
+
+    <script>
+        // Esta função agora lida com os dois estados: Lido e Não Lido
+function toggleReadStatus() {
+    const today = new Date().toDateString();
+    const lastRead = localStorage.getItem('lastReadDate');
+    const isRead = (lastRead === today);
+
+    if (isRead) {
+        // Se já estava lido, vamos DESMARCAR
+        localStorage.removeItem('lastReadDate');
+        resetStatusUI();
+    } else {
+        // Se não estava lido, vamos MARCAR
+        localStorage.setItem('lastReadDate', today);
+        showAsCompleted();
+    }
+}
+
+// Função para mostrar o estado CONCLUÍDO
+function showAsCompleted() {
+    document.getElementById('statusBadge').style.display = 'inline-block';
+    const btn = document.getElementById('btnStatus');
+    btn.innerText = 'Lido ✓ (Desmarcar)';
+    btn.style.opacity = '0.7';
+    btn.classList.remove('btn-primary');
+    btn.style.background = '#4caf50'; // Cor verde de sucesso
+    btn.style.color = 'white';
+}
+
+// Função para voltar ao estado NÃO LIDO
+function resetStatusUI() {
+    document.getElementById('statusBadge').style.display = 'none';
+    const btn = document.getElementById('btnStatus');
+    btn.innerText = 'Concluir Leitura';
+    btn.style.opacity = '1';
+    btn.style.background = ''; // Volta para a cor padrão do CSS
+    btn.classList.add('btn-primary');
+}
+
+// Atualize a sua função init() para usar a nova lógica de verificação
+function checkIfRead(today) {
+    const lastRead = localStorage.getItem('lastReadDate');
+    if (lastRead === today.toDateString()) {
+        showAsCompleted();
+    } else {
+        resetStatusUI();
+    }
+}
+
+function renderApp(content) {
+    document.getElementById('devTitle').innerText = content.t;
+    document.getElementById('devVerse').innerText = `"${content.v}"`;
+    document.getElementById('devRef').innerText = content.r;
+    document.getElementById('devText').innerText = content.p;
+}
+
+function checkIfRead(today) {
+    const lastRead = localStorage.getItem('lastReadDate');
+    if (lastRead === today.toDateString()) {
+        showAsCompleted();
+    }
+}
+
+// ... as outras funções (toggleTheme, share, markAsRead) continuam as mesmas
+init();
+
+       async function init() {
+    try {
+        // Adicionamos um parâmetro de tempo para evitar que o navegador use uma versão antiga/cache do arquivo
+        const response = await fetch('devocional.json?t=' + new Date().getTime());
+        
+        if (!response.ok) {
+            throw new Error(`Erro ao carregar o arquivo: ${response.status}`);
+        }
+
+        const database = await response.json();
+
+        const today = new Date();
+        const dateString = today.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+        document.getElementById('dateText').innerText = dateString;
+
+        // Cálculo do dia do ano
+        const start = new Date(today.getFullYear(), 0, 0);
+        const diff = today - start;
+        const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+        
+        // Pega o conteúdo
+        const content = database[dayOfYear % database.length];
+
+        // RENDERIZAÇÃO (Verifique se os IDs batem com o seu HTML)
+        document.getElementById('devTitle').innerText = content.t;
+        document.getElementById('devVerse').innerText = `"${content.v}"`;
+        document.getElementById('devRef').innerText = content.r;
+        document.getElementById('devText').innerText = content.p;
+
+        checkIfRead(today);
+
+    } catch (error) {
+        console.error("Erro detalhado:", error);
+        document.getElementById('devText').innerHTML = "<span style='color:red'>Erro ao carregar a reflexão. Certifique-se de que o arquivo devocional.json está na pasta e que você está usando o Live Server.</span>";
+    }
+}
+
+            // Carregar Tema
+            if (localStorage.getItem('theme') === 'dark') toggleTheme(true);
+        
+
+        function markAsRead() {
+            const today = new Date().toDateString();
+            localStorage.setItem('lastReadDate', today);
+            showAsCompleted();
+            alert("Parabéns por dedicar um tempo à sua espiritualidade hoje!");
+        }
+
+        function showAsCompleted() {
+            document.getElementById('statusBadge').style.display = 'inline-block';
+            document.getElementById('btnDone').innerText = 'Lido ✓';
+            document.getElementById('btnDone').style.opacity = '0.6';
+            document.getElementById('btnDone').disabled = true;
+        }
+
+        function toggleTheme(forceDark = false) {
+            const body = document.body;
+            const current = body.getAttribute('data-theme');
+            const target = forceDark ? 'dark' : (current === 'light' ? 'dark' : 'light');
+            
+            body.setAttribute('data-theme', target);
+            localStorage.setItem('theme', target);
+        }
+
+        function share() {
+            const text = `${document.getElementById('devTitle').innerText}\n${document.getElementById('devVerse').innerText} (${document.getElementById('devRef').innerText})`;
+            if (navigator.share) {
+                navigator.share({ title: 'Devocional Diário', text: text });
+            } else {
+                navigator.clipboard.writeText(text);
+                alert("Texto copiado para o seu teclado!");
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
